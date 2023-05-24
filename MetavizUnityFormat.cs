@@ -91,34 +91,42 @@ public class MetavizUnityFormat
             return;
         }
 
-        // Process sessions
+        // All packets
+        List<XmlElement> packets = new List<XmlElement>();
+
+        // Flatten sessions to single packets list
         foreach (XmlElement session in xmlDoc.SelectNodes("mv/history/session"))
         {
             Debug.Log("session " + session.GetAttribute("id"));
-            foreach (XmlElement packet in session.ChildNodes)
+            foreach (XmlElement packet in session.ChildNodes) packets.Add(packet);
+        }
+
+        // Sort packets by timestamp
+        packets.Sort((a, b) => a.GetAttribute("timestamp").CompareTo(b.GetAttribute("timestamp")));
+
+        // Process packets
+        foreach (XmlElement packet in packets)
+        {
+            switch (packet.Name)
             {
-                Debug.Log("packet " + packet.Name);
-                switch (packet.Name)
-                {
 
-                    case "add":
-                        //Debug.Log("add " + packet.GetAttribute("nodes"));
-                        // render.nodes.Add();
-                        break;
+                case "add":
+                    Debug.Log("add " + packet.GetAttribute("nodes"));
+                    // render.nodes.Add();
+                    break;
 
-                    case "del":
-                        break;
+                case "del":
+                    break;
 
-                    case "move":
-                        break;
+                case "move":
+                    break;
 
-                    case "resize":
-                        break;
+                case "resize":
+                    break;
 
-                    case "param":
-                        break;
+                case "param":
+                    break;
 
-                }
             }
         }
     }
