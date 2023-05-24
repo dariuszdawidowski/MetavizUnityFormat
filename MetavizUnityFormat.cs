@@ -85,7 +85,7 @@ public class MetavizUnityFormat
         // Header
         string format = xmlDoc.SelectSingleNode("mv/format").InnerText;
         int version = int.Parse(xmlDoc.SelectSingleNode("mv/version").InnerText);
-        if (format != "MetavizStack" || version != 3)
+        if (format != "MetavizStack" || version != 4)
         {
             Debug.LogError("Unsupported or unknown Metaviz format version!");
             return;
@@ -111,17 +111,23 @@ public class MetavizUnityFormat
             {
 
                 case "add":
-                    foreach (XmlAttribute attribute in packet.Attributes)
-                    {
-                        if (attribute.Name.StartsWith("data-")) Debug.Log("Data: " + attribute.Value);
-                        else
-                        {
-                            Debug.Log("Attribute Name: " + attribute.Name);
-                            Debug.Log("Attribute Value: " + attribute.Value);
-                        }
-                    }
-                    // Debug.Log("add " + packet.GetAttribute("nodes"));
-                    // render.nodes.Add();
+                    // Node
+                    if (packet.HasAttribute("node")) render.nodes.Add(
+                        packet.GetAttribute("node"),
+                        packet.GetAttribute("type"),
+                        int.Parse(packet.GetAttribute("x")),
+                        int.Parse(packet.GetAttribute("y")),
+                        int.Parse(packet.GetAttribute("w")),
+                        int.Parse(packet.GetAttribute("h")),
+                        DataCollect(packet.Attributes)
+                    );
+                    // Link
+                    // if (packet.HasAttribute("link")) render.links.Add(
+                    //     packet.GetAttribute("link"),
+                    //     packet.GetAttribute("type"),
+                    //     packet.GetAttribute("start"),
+                    //     packet.GetAttribute("end")
+                    // );
                     break;
 
                 case "del":
@@ -138,6 +144,20 @@ public class MetavizUnityFormat
 
             }
         }
+    }
+
+    string DataCollect(XmlAttributeCollection attributes)
+    {
+        foreach (XmlAttribute attribute in attributes)
+        {
+            if (attribute.Name.StartsWith("data-")) Debug.Log("Data: " + attribute.Value);
+            else
+            {
+                Debug.Log("Attribute Name: " + attribute.Name);
+                Debug.Log("Attribute Value: " + attribute.Value);
+            }
+        }
+        return "";
     }
 
 }
