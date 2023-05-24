@@ -111,7 +111,16 @@ public class MetavizUnityFormat
             {
 
                 case "add":
-                    Debug.Log("add " + packet.GetAttribute("nodes"));
+                    foreach (XmlAttribute attribute in packet.Attributes)
+                    {
+                        if (attribute.Name.StartsWith("data-")) Debug.Log("Data: " + attribute.Value);
+                        else
+                        {
+                            Debug.Log("Attribute Name: " + attribute.Name);
+                            Debug.Log("Attribute Value: " + attribute.Value);
+                        }
+                    }
+                    // Debug.Log("add " + packet.GetAttribute("nodes"));
                     // render.nodes.Add();
                     break;
 
