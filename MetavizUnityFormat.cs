@@ -36,6 +36,11 @@ public class MetavizNode
         data = in_data;
     }
 
+    public MetavizNode[] GetChildren()
+    {
+        return null;
+    }
+
 }
 
 public class MetavizNodes
