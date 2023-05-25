@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
@@ -48,6 +49,17 @@ public class MetavizNode
         return children.ToArray();
     }
 
+    public void TraverseTree(Action<MetavizNode> callback, int max = 1000, int level = 1)
+    {
+        string ident = new String('+', level);
+        //Debug.Log(ident + " " + type + " (" + id + ")");
+        foreach (MetavizNode node in GetChildren())
+        {
+            //Debug.Log(node.type);
+            callback(node);
+            if (level < max) TraverseTree(callback, level + 1);
+        }
+    }
 }
 
 public class MetavizNodes
@@ -319,7 +331,6 @@ public class MetavizUnityFormat
                                 start,
                                 end
                             );
-                            start.links.Add(link);
                             end.links.Add(link);
                         }
                     }
