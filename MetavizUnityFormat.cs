@@ -379,7 +379,7 @@ public class MetavizUnityFormat
         {
             if (attribute.Name.StartsWith("data-"))
             {
-                data[attribute.Name.Substring(5)] = attribute.Value;
+                data[attribute.Name.Substring(5)] = System.Net.WebUtility.HtmlDecode(attribute.Value);
             }
         }
         return data;
