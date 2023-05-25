@@ -1,3 +1,3 @@
 # MetavizUnityFormat
-Parsing .mv in C#/Unity3D.
-v0.1.0
+Parsing Metaviz file in C#/Unity3D.
+v0.2.0
