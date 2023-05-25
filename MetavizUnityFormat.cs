@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
 
+/**
+ * MetavizTransform
+ */
+
 public class MetavizTransform
 {
     public int x;
@@ -20,6 +24,10 @@ public class MetavizTransform
     }
 
 }
+
+/**
+ * MetavizNode
+ */
 
 public class MetavizNode
 {
@@ -51,16 +59,17 @@ public class MetavizNode
 
     public void TraverseTree(Action<MetavizNode> callback, int max = 1000, int level = 1)
     {
-        string ident = new String('+', level);
-        //Debug.Log(ident + " " + type + " (" + id + ")");
         foreach (MetavizNode node in GetChildren())
         {
-            //Debug.Log(node.type);
             callback(node);
-            if (level < max) TraverseTree(callback, level + 1);
+            if (level < max) node.TraverseTree(callback, level + 1);
         }
     }
 }
+
+/**
+ * MetavizNodes
+ */
 
 public class MetavizNodes
 {
@@ -127,6 +136,10 @@ public class MetavizNodes
 
 }
 
+/**
+ * MetavizLink
+ */
+
 public class MetavizLink
 {
 
@@ -144,6 +157,10 @@ public class MetavizLink
     }
 
 }
+
+/**
+ * MetavizLinks
+ */
 
 public class MetavizLinks
 {
@@ -195,6 +212,10 @@ public class MetavizLinks
 
 }
 
+/**
+ * MetavizRender
+ */
+
 public class MetavizRender
 {
 
@@ -208,6 +229,10 @@ public class MetavizRender
     }
 
 }
+
+/**
+ * MetavizUnityFormat
+ */
 
 public class MetavizUnityFormat
 {
@@ -331,7 +356,7 @@ public class MetavizUnityFormat
                                 start,
                                 end
                             );
-                            end.links.Add(link);
+                            start.links.Add(link);
                         }
                     }
                     break;
