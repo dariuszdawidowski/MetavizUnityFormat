@@ -62,6 +62,21 @@ public class MetavizNodes
         return null;
     }
 
+    public MetavizNode Get(string type, string key, string val)
+    {
+        foreach (MetavizNode node in list)
+        {
+            if (node.type == type)
+            {
+                foreach (KeyValuePair<string, object> pair in node.data)
+                {
+                    if (pair.Key.Equals(key) && pair.Value.Equals(val)) return node;
+                }
+            }
+        }
+        return null;
+    }
+
     public MetavizNode[] GetAll(string ids)
     {
         List<MetavizNode> nodes = new List<MetavizNode>();
@@ -261,11 +276,7 @@ public class MetavizUnityFormat
                 case "param":
                     if (node != null)
                     {
-                        Dictionary<string, object> data = DataCollect(packet.Attributes);
-                        foreach (KeyValuePair<string, object> pair in data)
-                        {
-                            node.data[pair.Key] = pair.Value;
-                        }
+                        node.data = DataCollect(packet.Attributes);
                     }
                     break;
 
@@ -315,7 +326,7 @@ public class MetavizUnityFormat
         {
             if (attribute.Name.StartsWith("data-"))
             {
-                data[attribute.Name] = attribute.Value;
+                data[attribute.Name.Substring(5)] = attribute.Value;
             }
         }
         return data;
