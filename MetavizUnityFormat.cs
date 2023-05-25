@@ -27,9 +27,11 @@ public class MetavizNode
     public string type;
     public MetavizTransform transform;
     public Dictionary<string, object> data;
+    public List<MetavizLink> links;
 
     public MetavizNode(string in_id, string in_type, int in_x, int in_y, int in_w, int in_h, Dictionary<string, object> in_data)
     {
+        links = new List<MetavizLink>();
         id = in_id;
         type = in_type;
         transform = new MetavizTransform(in_x, in_y, in_w, in_h);
@@ -38,7 +40,12 @@ public class MetavizNode
 
     public MetavizNode[] GetChildren()
     {
-        return null;
+        List<MetavizNode> children = new List<MetavizNode>();
+        foreach (MetavizLink link in links)
+        {
+            children.Add(link.end);
+        }
+        return children.ToArray();
     }
 
 }
@@ -53,9 +60,11 @@ public class MetavizNodes
         list = new List<MetavizNode>();
     }
 
-    public void Add(string id, string type, int x, int y, int w, int h, Dictionary<string, object> data)
+    public MetavizNode Add(string id, string type, int x, int y, int w, int h, Dictionary<string, object> data)
     {
-        list.Add(new MetavizNode(id, type, x, y, w, h, data));
+        MetavizNode node = new MetavizNode(id, type, x, y, w, h, data);
+        list.Add(node);
+        return node;
     }
 
     public MetavizNode Get(string id)
@@ -134,9 +143,11 @@ public class MetavizLinks
         list = new List<MetavizLink>();
     }
 
-    public void Add(string id, string type, MetavizNode start, MetavizNode end)
+    public MetavizLink Add(string id, string type, MetavizNode start, MetavizNode end)
     {
-        list.Add(new MetavizLink(id, type, start, end));
+        MetavizLink link = new MetavizLink(id, type, start, end);
+        list.Add(link);
+        return link;
     }
 
     public MetavizLink Get(string id)
@@ -185,7 +196,6 @@ public class MetavizRender
     }
 
 }
-
 
 public class MetavizUnityFormat
 {
@@ -303,12 +313,14 @@ public class MetavizUnityFormat
                         MetavizNode end = render.nodes.Get(packet.GetAttribute("end"));
                         if (start != null && end != null)
                         {
-                            render.links.Add(
+                            MetavizLink link = render.links.Add(
                                 packet.GetAttribute("link"),
                                 packet.GetAttribute("type"),
                                 start,
                                 end
                             );
+                            start.links.Add(link);
+                            end.links.Add(link);
                         }
                     }
                     break;
