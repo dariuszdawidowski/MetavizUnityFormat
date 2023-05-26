@@ -73,19 +73,12 @@ public class MetavizNode
         buffer += "  id: " + id + "\n";
         buffer += "  type: " + type + "\n";
         buffer += "  transform: (x = " + transform.x + ", y = " + transform.y + ", w = " + transform.w + ", h = " + transform.h + ")\n";
-        if (data.Count > 0)
+        buffer += "  data (" + data.Count + ")\n";
+        foreach (KeyValuePair<string, object> entry in data)
         {
-            buffer += "  data (" + data.Count + ")\n";
-            foreach (KeyValuePair<string, object> entry in data)
-            {
-                buffer += "    " + entry.Key + " = " + (string)entry.Value + "\n";
-            }
+            buffer += "    " + entry.Key + " = " + (string)entry.Value + "\n";
         }
-        else
-        {
-            buffer += "  data: -\n";
-        }
-        buffer += "  links:\n";
+        buffer += "  links (" + links.Count + ")\n";
         foreach (MetavizLink link in links)
         {
             buffer += "    -> " + link.end.id + "\n";
@@ -357,7 +350,10 @@ public class MetavizUnityFormat
                 case "param":
                     if (node != null)
                     {
-                        node.data = DataCollect(packet.Attributes);
+                        foreach (KeyValuePair<string, object> entry in DataCollect(packet.Attributes))
+                        {
+                            node.data[entry.Key] = entry.Value;
+                        }
                     }
                     break;
 
