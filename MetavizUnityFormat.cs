@@ -65,6 +65,35 @@ public class MetavizNode
             if (level < max) node.TraverseTree(callback, level + 1);
         }
     }
+
+#if UNITY_EDITOR
+    public string DebugDump()
+    {
+        string buffer = "Node:\n";
+        buffer += "  id: " + id + "\n";
+        buffer += "  type: " + type + "\n";
+        buffer += "  transform: (x = " + transform.x + ", y = " + transform.y + ", w = " + transform.w + ", h = " + transform.h + ")\n";
+        if (data.Count > 0)
+        {
+            buffer += "  data (" + data.Count + ")\n";
+            foreach (KeyValuePair<string, object> entry in data)
+            {
+                buffer += "    " + entry.Key + " = " + (string)entry.Value + "\n";
+            }
+        }
+        else
+        {
+            buffer += "  data: -\n";
+        }
+        buffer += "  links:\n";
+        foreach (MetavizLink link in links)
+        {
+            buffer += "    -> " + link.end.id + "\n";
+        }
+        return buffer;
+    }
+#endif
+
 }
 
 /**
