@@ -1,6 +1,6 @@
 /**
  * Metaviz Stacked XML format plugin for Unity3d
- * v0.5.0
+ * v0.6.0
  */
 
 namespace Metaviz
@@ -43,16 +43,16 @@ namespace Metaviz
         public string id;
         public string type;
         public Transform transform;
-        public Dictionary<string, object> data;
+        public Dictionary<string, object> param;
         public List<Link> links;
 
-        public Node(string in_id, string in_type, int in_x, int in_y, int in_w, int in_h, Dictionary<string, object> in_data)
+        public Node(string in_id, string in_type, int in_x, int in_y, int in_w, int in_h, Dictionary<string, object> in_params)
         {
             links = new List<Link>();
             id = in_id;
             type = in_type;
             transform = new Transform(in_x, in_y, in_w, in_h);
-            data = in_data;
+            param = in_params;
         }
 
         public Node[] GetChildren()
@@ -81,8 +81,8 @@ namespace Metaviz
             buffer += "  id: " + id + "\n";
             buffer += "  type: " + type + "\n";
             buffer += "  transform: (x = " + transform.x + ", y = " + transform.y + ", w = " + transform.w + ", h = " + transform.h + ")\n";
-            buffer += "  data (" + data.Count + ")\n";
-            foreach (KeyValuePair<string, object> entry in data)
+            buffer += "  params (" + param.Count + ")\n";
+            foreach (KeyValuePair<string, object> entry in param)
             {
                 buffer += "    " + entry.Key + " = " + (string)entry.Value + "\n";
             }
@@ -133,7 +133,7 @@ namespace Metaviz
             {
                 if (node.type == type)
                 {
-                    foreach (KeyValuePair<string, object> pair in node.data)
+                    foreach (KeyValuePair<string, object> pair in node.param)
                     {
                         if (pair.Key.Equals(key) && pair.Value.Equals(val)) return node;
                     }
@@ -153,6 +153,11 @@ namespace Metaviz
             return nodes.ToArray();
         }
 
+        public Node[] GetAll()
+        {
+            return list.ToArray();
+        }
+
         public bool Del(string id)
         {
             Node node = Get(id);
@@ -163,6 +168,18 @@ namespace Metaviz
             }
             return false;
         }
+
+#if UNITY_EDITOR
+        public string DebugDump()
+        {
+            string buffer = "Nodes (click to unfold):\n\n";
+            foreach (Node node in list)
+            {
+                buffer += node.DebugDump() + "\n";
+            }
+            return buffer;
+        }
+#endif
 
     }
 
@@ -185,6 +202,18 @@ namespace Metaviz
             start = in_start;
             end = in_end;
         }
+
+#if UNITY_EDITOR
+        public string DebugDump()
+        {
+            string buffer = "Link:\n";
+            buffer += "  id: " + id + "\n";
+            buffer += "  type: " + type + "\n";
+            buffer += "  start: " + start.id + "\n";
+            buffer += "  end: " + end.id + "\n";
+            return buffer;
+        }
+#endif
 
     }
 
@@ -229,6 +258,11 @@ namespace Metaviz
             return links.ToArray();
         }
 
+        public Link[] GetAll()
+        {
+            return list.ToArray();
+        }
+
         public bool Del(string id)
         {
             Link link = Get(id);
@@ -239,6 +273,18 @@ namespace Metaviz
             }
             return false;
         }
+
+#if UNITY_EDITOR
+        public string DebugDump()
+        {
+            string buffer = "Links (click to unfold):\n\n";
+            foreach (Link link in list)
+            {
+                buffer += link.DebugDump() + "\n";
+            }
+            return buffer;
+        }
+#endif
 
     }
 
@@ -283,7 +329,7 @@ namespace Metaviz
             // Header
             string format = xmlDoc.SelectSingleNode("mv/format").InnerText;
             int version = int.Parse(xmlDoc.SelectSingleNode("mv/version").InnerText);
-            if (format != "MetavizStack" || version != 4)
+            if (format != "MetavizStack" || version < 4 || version > 6)
             {
                 Debug.LogError("Unsupported or unknown Metaviz format version!");
                 return;
@@ -304,16 +350,15 @@ namespace Metaviz
             // Process packets for nodes
             foreach (XmlElement packet in packets)
             {
-
                 Node node = packet.HasAttribute("node") ? render.nodes.Get(packet.GetAttribute("node")) : null;
                 Node[] nodes = packet.HasAttribute("nodes") ? render.nodes.GetAll(packet.GetAttribute("nodes")) : null;
 
                 switch (packet.Name)
                 {
-
                     case "add":
                         // Node
                         if (packet.HasAttribute("node"))
+                        {
                             render.nodes.Add(
                                 packet.GetAttribute("node"),
                                 packet.GetAttribute("type"),
@@ -323,12 +368,15 @@ namespace Metaviz
                                 int.Parse(packet.GetAttribute("h")),
                                 DataCollect(packet.Attributes)
                             );
+                        }
                         break;
 
                     case "del":
                         // Node
                         if (packet.HasAttribute("node"))
+                        {
                             render.nodes.Del(packet.GetAttribute("node"));
+                        }
                         break;
 
                     case "move":
@@ -360,21 +408,18 @@ namespace Metaviz
                         {
                             foreach (KeyValuePair<string, object> entry in DataCollect(packet.Attributes))
                             {
-                                node.data[entry.Key] = entry.Value;
+                                node.param[entry.Key] = entry.Value;
                             }
                         }
                         break;
-
                 }
             } // foreach
 
             // Process packets for links (when all nodes already exists)
             foreach (XmlElement packet in packets)
             {
-
                 switch (packet.Name)
                 {
-
                     case "add":
                         // Link
                         if (packet.HasAttribute("link"))
@@ -397,9 +442,10 @@ namespace Metaviz
                     case "del":
                         // Link
                         if (packet.HasAttribute("link"))
+                        {
                             render.links.Del(packet.GetAttribute("link"));
+                        }
                         break;
-
                 }
             } // foreach
 
@@ -410,7 +456,13 @@ namespace Metaviz
             Dictionary<string, object> data = new Dictionary<string, object>();
             foreach (XmlAttribute attribute in attributes)
             {
-                if (attribute.Name.StartsWith("data-"))
+                // Get param
+                if (attribute.Name.StartsWith("param-"))
+                {
+                    data[attribute.Name.Substring(6)] = System.Net.WebUtility.HtmlDecode(attribute.Value);
+                }
+                // Version < 6 compatibility
+                else if (attribute.Name.StartsWith("data-"))
                 {
                     data[attribute.Name.Substring(5)] = System.Net.WebUtility.HtmlDecode(attribute.Value);
                 }
